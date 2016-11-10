@@ -60,4 +60,12 @@
         android:layout_marginTop="14dp"
         android:id="@+id/GeoText" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/GeoText2"
+        android:layout_below="@+id/GeoText"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="9dp" />
+
 </RelativeLayout>

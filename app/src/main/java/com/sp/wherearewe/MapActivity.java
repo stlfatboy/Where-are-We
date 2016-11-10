@@ -4,6 +4,10 @@ import android.app.Activity;
 
 import android.content.Context;
 import android.content.pm.ActivityInfo;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,8 +36,6 @@ import com.baidu.mapapi.map.MyLocationConfiguration.LocationMode;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
 
-import com.baidu.location.service.BaseStripAdapter;
-import com.baidu.location.service.StripListView;
 
 import javax.microedition.khronos.opengles.GL;
 
@@ -46,10 +48,12 @@ public class MapActivity extends Activity {
     public MyLocationListenner myListener = new MyLocationListenner();
     private LocationMode mCurrentMode;
     BitmapDescriptor mCurrentMarker;
+    SensorManager sm;
     private static final int accuracyCircleFillColor = 0xAAFFFF88;
     private static final int accuracyCircleStrokeColor = 0xAA00FF00;
 
-    private static double Long, Glat;
+    private static double Long, Glat, r;
+    private static double locDirection;
 
     MapView mMapView;
     BaiduMap mBaiduMap;
@@ -127,6 +131,15 @@ public class MapActivity extends Activity {
         mBaiduMap = mMapView.getMap();
         // 开启定位图层
         mBaiduMap.setMyLocationEnabled(true);
+
+        InitLocation();
+        //InitSensor();
+
+        mLocClient.start();
+    }
+
+
+    public void InitLocation(){
         // 定位初始化
         mLocClient = new LocationClient(this);
         mLocClient.registerLocationListener(myListener);
@@ -134,8 +147,51 @@ public class MapActivity extends Activity {
         option.setOpenGps(true); // 打开gps
         option.setCoorType("bd09ll"); // 设置坐标类型
         option.setScanSpan(1000);
+        option.setLocationMode(LocationClientOption.LocationMode.Hight_Accuracy);
+        option.setNeedDeviceDirect(true);//可选，设置是否需要设备方向结果
+        option.setLocationNotify(true);
+        option.setIgnoreKillProcess(false);
+        //可选，默认true，定位SDK内部是一个SERVICE，并放到了独立进程，设置是否在stop的时候杀死这个进程，默认不杀死
         mLocClient.setLocOption(option);
-        mLocClient.start();
+    }
+
+    private void InitSensor() {
+        // 传感器管理器
+        sm = (SensorManager) getSystemService(SENSOR_SERVICE);
+        // 注册传感器(Sensor.TYPE_ORIENTATION(方向传感器);SENSOR_DELAY_FASTEST(0毫秒延迟);
+        // SENSOR_DELAY_GAME(20,000毫秒延迟)、SENSOR_DELAY_UI(60,000毫秒延迟))
+        sm.registerListener(new SensorEventListener() {
+                                // 用于传感器监听中，设置灵敏程度
+                                int mIncrement;
+
+                                @Override
+                                public void onSensorChanged(SensorEvent event) {
+                                    // 方向传感器
+                                    if (event.sensor.getType() == Sensor.TYPE_ORIENTATION) {
+                                        // x表示手机指向的方位，0表示北,90表示东，180表示南，270表示西
+                                        float x = event.values[SensorManager.DATA_X];
+                                        // Log.e("x",x+"");
+                                        mIncrement++;
+                                        if (mIncrement == 5) {
+                                            // 修改定位图标方向
+                                            locDirection = x;
+                                            //  重新设置当前位置数据
+                                            // mBaiduMap.setMyLocationData(locData);
+                                            //myLocationOverlay.setData(locData);
+                                            //mMapView.refresh();
+
+                                            mIncrement = 0;
+                                            Log.i("direction", "" + locDirection);
+                                        }
+                                    }
+                                }
+
+                                @Override
+                                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+                                }
+                            }, sm.getDefaultSensor(Sensor.TYPE_ORIENTATION),
+                SensorManager.SENSOR_DELAY_NORMAL);
     }
 
     /**
@@ -157,8 +213,11 @@ public class MapActivity extends Activity {
 
             Long = location.getLongitude();
             Glat = location.getLatitude();
+            r = location.getRadius();
             TextView geo = (TextView) findViewById(R.id.GeoText);
-            geo.setText(Glat+", "+Long);
+            TextView geo2 = (TextView) findViewById(R.id.GeoText2);
+            geo2.setText(Glat+", "+Long);
+            geo.setText("卫星数："+location.getSatelliteNumber()+"精度："+r);
 
             mBaiduMap.setMyLocationData(locData);
             if (isFirstLoc) {
