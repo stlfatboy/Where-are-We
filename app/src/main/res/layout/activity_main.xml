@@ -24,10 +24,17 @@
             android:id="@+id/text_Info" />
 
         <Button
-            android:text="Test Button"
-            android:onClick="TestButtonClick"
+            android:text="开启地图"
+            android:onClick="MapButtonClick"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/button" />
+            android:id="@+id/main_button" />
+
+        <Button
+            android:text="离线地图"
+            android:onClick="OfflineButtonClick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/main_button2" />
     </LinearLayout>
 </RelativeLayout>

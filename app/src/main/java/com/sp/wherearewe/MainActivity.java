@@ -55,8 +55,13 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void TestButtonClick(View v){
+    public void MapButtonClick(View v){
         Intent intent = new Intent(v.getContext(), MapActivity.class);
+        startActivity(intent);
+    }
+
+    public void OfflineButtonClick(View v){
+        Intent intent = new Intent(v.getContext(), OfflineMapActivity.class);
         startActivity(intent);
     }
 
