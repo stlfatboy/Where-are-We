@@ -1,43 +1,39 @@
 package com.sp.wherearewe;
 
 import android.app.Activity;
-
-import android.content.Context;
-import android.content.pm.ActivityInfo;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.RadioGroup;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
-//import com.baidu.baidulocationdemo.R;
 import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClient;
 import com.baidu.location.LocationClientOption;
-
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
-import com.baidu.mapapi.map.MapBaseIndoorMapInfo;
 import com.baidu.mapapi.map.MapStatus;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
+import com.baidu.mapapi.map.Marker;
+import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationConfiguration.LocationMode;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.model.LatLng;
 
+import java.util.ArrayList;
 
-import javax.microedition.khronos.opengles.GL;
+//import com.baidu.baidulocationdemo.R;
 
 /**
  * Created by stlfa on 11/10/2016.
@@ -54,6 +50,17 @@ public class MapActivity extends Activity {
 
     private static double Long, Glat, r;
     private static double locDirection;
+
+    private Marker mMarkerA;
+    private Marker mMarkerB;
+    private Marker mMarkerC;
+
+    BitmapDescriptor bdA = BitmapDescriptorFactory
+            .fromResource(R.drawable.icon_marka);
+    BitmapDescriptor bdB = BitmapDescriptorFactory
+            .fromResource(R.drawable.icon_markb);
+    BitmapDescriptor bdC = BitmapDescriptorFactory
+            .fromResource(R.drawable.icon_markc);
 
     MapView mMapView;
     BaiduMap mBaiduMap;
@@ -136,6 +143,8 @@ public class MapActivity extends Activity {
         //InitSensor();
 
         mLocClient.start();
+
+        initOverlay();
     }
 
 
@@ -155,7 +164,78 @@ public class MapActivity extends Activity {
         mLocClient.setLocOption(option);
     }
 
-    private void InitSensor() {
+    public void initOverlay() {
+        // add marker overlay
+        LatLng llA = new LatLng(Glat-0.005, Long+0.003);
+        LatLng llB = new LatLng(Glat+0.005, Long-0.008);
+        LatLng llC = new LatLng(Glat+0.003, Long+0.003);
+        //LatLng llD = new LatLng(39.906965, 116.401394);
+
+        MarkerOptions ooA = new MarkerOptions().position(llA).icon(bdA)
+                .zIndex(9).draggable(true);
+            // 掉下动画
+        ooA.animateType(MarkerOptions.MarkerAnimateType.drop);
+        mMarkerA = (Marker) (mBaiduMap.addOverlay(ooA));
+        MarkerOptions ooB = new MarkerOptions().position(llB).icon(bdB)
+                .zIndex(5);
+            // 掉下动画
+        ooB.animateType(MarkerOptions.MarkerAnimateType.grow);
+        mMarkerB = (Marker) (mBaiduMap.addOverlay(ooB));
+        /*MarkerOptions ooC = new MarkerOptions().position(llC).icon(bdC)
+                .perspective(false).anchor(0.5f, 0.5f).rotate(30).zIndex(7);
+            // 生长动画
+            ooC.animateType(MarkerOptions.MarkerAnimateType.grow);
+        mMarkerC = (Marker) (mBaiduMap.addOverlay(ooC));*/
+        ArrayList<BitmapDescriptor> giflist = new ArrayList<BitmapDescriptor>();
+        giflist.add(bdA);
+        giflist.add(bdB);
+        giflist.add(bdC);
+        MarkerOptions ooC = new MarkerOptions().position(llC).icons(giflist)
+                .zIndex(0).period(10);
+            // 生长动画
+        ooC.animateType(MarkerOptions.MarkerAnimateType.grow);
+        mMarkerC = (Marker) (mBaiduMap.addOverlay(ooC));
+
+        // add ground overlay
+        /*LatLng southwest = new LatLng(39.92235, 116.380338);
+        LatLng northeast = new LatLng(39.947246, 116.414977);
+        LatLngBounds bounds = new LatLngBounds.Builder().include(northeast)
+                .include(southwest).build();
+
+        OverlayOptions ooGround = new GroundOverlayOptions()
+                .positionFromBounds(bounds).image(bdGround).transparency(0.8f);
+        mBaiduMap.addOverlay(ooGround);
+
+        MapStatusUpdate u = MapStatusUpdateFactory
+                .newLatLng(bounds.getCenter());
+        mBaiduMap.setMapStatus(u);*/
+
+        mBaiduMap.setOnMarkerDragListener(new BaiduMap.OnMarkerDragListener() {
+            public void onMarkerDrag(Marker marker) {
+            }
+
+            public void onMarkerDragEnd(Marker marker) {
+                Toast.makeText(
+                        MapActivity.this,
+                        "拖拽结束，新位置：" + marker.getPosition().latitude + ", "
+                                + marker.getPosition().longitude,
+                        Toast.LENGTH_LONG).show();
+            }
+
+            public void onMarkerDragStart(Marker marker) {
+            }
+        });
+    }
+
+    public void clearOverlay(View view) {
+        mBaiduMap.clear();
+        mMarkerA = null;
+        mMarkerB = null;
+        mMarkerC = null;
+        //mMarkerD = null;
+    }
+
+    /*private void InitSensor() {
         // 传感器管理器
         sm = (SensorManager) getSystemService(SENSOR_SERVICE);
         // 注册传感器(Sensor.TYPE_ORIENTATION(方向传感器);SENSOR_DELAY_FASTEST(0毫秒延迟);
@@ -192,7 +272,7 @@ public class MapActivity extends Activity {
                                 }
                             }, sm.getDefaultSensor(Sensor.TYPE_ORIENTATION),
                 SensorManager.SENSOR_DELAY_NORMAL);
-    }
+    }*/
 
     /**
      * 定位SDK监听函数
@@ -255,5 +335,9 @@ public class MapActivity extends Activity {
         mMapView.onDestroy();
         mMapView = null;
         super.onDestroy();
+        // 回收 bitmap 资源
+        bdA.recycle();
+        bdB.recycle();
+        bdC.recycle();
     }
 }

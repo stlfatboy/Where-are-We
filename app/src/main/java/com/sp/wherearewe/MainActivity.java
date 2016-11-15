@@ -2,6 +2,7 @@ package com.sp.wherearewe;
 
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,21 +11,19 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
-import android.os.Vibrator;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.baidu.location.service.LocationService;
 import com.baidu.mapapi.SDKInitializer;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     private static final String LTAG = MainActivity.class.getSimpleName();
     private SDKReceiver mReceiver;
@@ -35,15 +34,15 @@ public class MainActivity extends AppCompatActivity {
     public LocationService locationService;
     public Vibrator mVibrator;
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+
         locationService = new LocationService(getApplicationContext());
         mVibrator =(Vibrator)getApplicationContext().getSystemService(Service.VIBRATOR_SERVICE);
         SDKInitializer.initialize(getApplicationContext());
-        setContentView(R.layout.activity_main);
 
         IntentFilter iFilter = new IntentFilter();
         iFilter.addAction(SDKInitializer.SDK_BROADTCAST_ACTION_STRING_PERMISSION_CHECK_OK);
@@ -52,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
         mReceiver = new SDKReceiver();
         registerReceiver(mReceiver, iFilter);
         getPersimmions();
+
 
     }
 
@@ -65,8 +65,13 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    public void ScrollMapButtonClick(View v){
+        Intent intent = new Intent(v.getContext(), ChatMapBetaActivity.class);
+        startActivity(intent);
+    }
 
-        @TargetApi(23)
+
+    @TargetApi(23)
     private void getPersimmions() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             ArrayList<String> permissions = new ArrayList<>();
